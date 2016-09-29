@@ -31,7 +31,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
 
     @Override
     public void onBindViewHolder(RecyclerViewHolder holder, int position) {
-        //  Log.d("Adapter", "Holder " + holder + " ImageView " + holder.imageView);
+        holder.textView.setText("Image Number is " + (29 - position));
         ImageLoaderUtils.getInstance().setImage(holder.imageView, getItem(position), position);
     }
 

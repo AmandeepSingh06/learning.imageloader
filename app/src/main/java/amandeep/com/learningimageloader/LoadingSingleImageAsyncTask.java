@@ -52,17 +52,17 @@ public class LoadingSingleImageAsyncTask extends AsyncTask<Void, Void, Bitmap> {
             connection.connect();
             input = connection.getInputStream();
             Bitmap bitmap = decodeStream(input, null, options);
+            if (bitmap != null) {
+                CacheInput cacheInput = new CacheInput(position, bitmap);
+                ImageLoaderUtils.getInstance().addBitmapToCache(imageUrl, cacheInput);
+            }
             return bitmap;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
-
-    public WeakReference<ImageView> getReference() {
-        return reference;
-    }
-
+    
     public int getPosition() {
         return position;
     }
@@ -78,6 +78,9 @@ public class LoadingSingleImageAsyncTask extends AsyncTask<Void, Void, Bitmap> {
 
     private boolean shouldDisplayBitmap() {
         if (reference != null && ImageLoaderUtils.getInstance().hashMap.containsKey(reference.get())) {
+            if (ImageLoaderUtils.getInstance().hashMap.get(reference.get()) == null) {
+                return false;
+            }
             int currentPosition = ImageLoaderUtils.getInstance().hashMap.get(reference.get()).getPosition();
             if (currentPosition == position) {
                 return true;

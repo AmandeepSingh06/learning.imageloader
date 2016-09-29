@@ -63,7 +63,7 @@ public class MainActivity extends FragmentActivity implements RecyclerViewDataAs
 
     @Override
     protected void onDestroy() {
-        if(task!= null){
+        if (task != null) {
             task.unregisterCallback();
             task = null;
         }
