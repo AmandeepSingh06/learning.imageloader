@@ -55,6 +55,7 @@ public class LoadingSingleImageAsyncTask extends AsyncTask<Void, Void, Bitmap> {
             if (bitmap != null) {
                 CacheInput cacheInput = new CacheInput(position, bitmap);
                 ImageLoaderUtils.getInstance().addBitmapToCache(imageUrl, cacheInput);
+                ImageLoaderUtils.getInstance().addBitmapToDiskCache(imageUrl, cacheInput);
             }
             return bitmap;
         } catch (IOException e) {
@@ -62,7 +63,7 @@ public class LoadingSingleImageAsyncTask extends AsyncTask<Void, Void, Bitmap> {
         }
         return null;
     }
-    
+
     public int getPosition() {
         return position;
     }

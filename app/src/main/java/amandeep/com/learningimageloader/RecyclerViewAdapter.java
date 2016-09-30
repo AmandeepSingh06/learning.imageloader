@@ -8,16 +8,18 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+import amandeep.com.learningimageloader.Model.InnerObject;
+
 /**
  * Created by amandeepsingh on 25/09/16.
  */
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
 
-    private List<String> imagesUrl = new ArrayList<>();
+    private List<InnerObject> imagesUrl = new ArrayList<>();
     private static int count = 0;
 
-    public void setData(List<String> imagesUrl) {
+    public void setData(List<InnerObject> imagesUrl) {
         this.imagesUrl = imagesUrl;
     }
 
@@ -36,7 +38,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
     }
 
     private String getItem(int position) {
-        return imagesUrl.get(position);
+        return imagesUrl.get(position).getUrl();
     }
 
     @Override

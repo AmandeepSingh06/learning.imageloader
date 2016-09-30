@@ -9,6 +9,8 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import amandeep.com.learningimageloader.Model.InnerObject;
+
 public class MainActivity extends FragmentActivity implements RecyclerViewDataAsyncTask.CallBackInterface {
 
     private RecyclerView recyclerView;
@@ -49,7 +51,7 @@ public class MainActivity extends FragmentActivity implements RecyclerViewDataAs
     }
 
     @Override
-    public void onSuccess(List<String> imageUrls) {
+    public void onSuccess(List<InnerObject> imageUrls) {
         task = null;
         recyclerViewAdapter.setData(imageUrls);
         recyclerViewAdapter.notifyDataSetChanged();
