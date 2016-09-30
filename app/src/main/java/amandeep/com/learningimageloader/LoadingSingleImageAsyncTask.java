@@ -53,9 +53,8 @@ public class LoadingSingleImageAsyncTask extends AsyncTask<Void, Void, Bitmap> {
             input = connection.getInputStream();
             Bitmap bitmap = decodeStream(input, null, options);
             if (bitmap != null) {
-                CacheInput cacheInput = new CacheInput(position, bitmap);
-                ImageLoaderUtils.getInstance().addBitmapToCache(imageUrl, cacheInput);
-                ImageLoaderUtils.getInstance().addBitmapToDiskCache(imageUrl, cacheInput);
+                ImageLoaderUtils.getInstance().addBitmapToCache(imageUrl, bitmap);
+                ImageLoaderUtils.getInstance().addBitmapToDiskCache(imageUrl, bitmap);
             }
             return bitmap;
         } catch (IOException e) {

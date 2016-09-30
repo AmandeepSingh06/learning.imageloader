@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 
@@ -13,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.RejectedExecutionException;
 
 import static android.os.Environment.isExternalStorageRemovable;
 
@@ -26,7 +28,7 @@ public class ImageLoaderUtils {
     public static int imageHeight;
     public static int imageWidth;
     public static HashMap<ImageView, LoadingSingleImageAsyncTask> hashMap = new HashMap<>();
-    private static LruCache<String, CacheInput> cache;
+    private static LruCache<String, Bitmap> cache;
     public static final Object mDiskCacheLock = new Object();
     public static File cacheDir;
     private static final long MAX_DISK_CACHE_SIZE = 10485760;//10MB
@@ -38,10 +40,10 @@ public class ImageLoaderUtils {
             instance = new ImageLoaderUtils();
             final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
             final int cacheMemory = maxMemory / 4;
-            cache = new LruCache<String, CacheInput>(cacheMemory) {
+            cache = new LruCache<String, Bitmap>(cacheMemory) {
                 @Override
-                protected int sizeOf(String key, CacheInput value) {
-                    return value.getBitmap().getByteCount() / 1024;
+                protected int sizeOf(String key, Bitmap value) {
+                    return value.getByteCount() / 1024;
                 }
             };
             cacheDir = getDiskCacheDir(MainApplication.getContext(), "learningImageLoader");
@@ -63,17 +65,17 @@ public class ImageLoaderUtils {
         setDiskCacheSize(length);
     }
 
-    public static void addBitmapToDiskCache(String key, CacheInput cacheInput) {
+    public static void addBitmapToDiskCache(String key, Bitmap bitmap) {
         if (getBitmapFromDiskCache(key) != null) {
             return;
         }
-        while (spaceNotAvailableInDiskCache(cacheInput.getBitmap())) {
+        while (spaceNotAvailableInDiskCache(bitmap)) {
             removeLeastRecentlyAddedItem();
         }
         File file = new File(cacheDir, key);
         try {
             FileOutputStream out = new FileOutputStream(file);
-            cacheInput.getBitmap().compress(Bitmap.CompressFormat.JPEG, 100, out);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
             setDiskCacheSize(getDiskCacheSize() + file.length());
             out.flush();
             out.close();
@@ -110,13 +112,13 @@ public class ImageLoaderUtils {
     }
 
 
-    public static void addBitmapToCache(String key, CacheInput cacheInput) {
+    public static void addBitmapToCache(String key, Bitmap bitmap) {
         if (getBitmapFromCache(key) == null) {
-            cache.put(key, cacheInput);
+            cache.put(key, bitmap);
         }
     }
 
-    private static CacheInput getBitmapFromCache(String key) {
+    private static Bitmap getBitmapFromCache(String key) {
         return cache.get(key);
     }
 
@@ -134,12 +136,12 @@ public class ImageLoaderUtils {
     }
 
     public static void setImage(ImageView imageView, String imageUrl, int position) {
-        CacheInput input = getBitmapFromCache(imageUrl);
-        if (input != null && input.getBitmap() != null && input.getPosition() == position) {
-            imageView.setImageBitmap(input.getBitmap());
+        Bitmap bitmap = getBitmapFromCache(imageUrl);
+        if (bitmap != null) {
+            imageView.setImageBitmap(bitmap);
             hashMap.put(imageView, null);
         } else {
-            Bitmap bitmap = getBitmapFromDiskCache(imageUrl);
+            bitmap = getBitmapFromDiskCache(imageUrl);
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap);
                 hashMap.put(imageView, null);
@@ -149,7 +151,11 @@ public class ImageLoaderUtils {
                 LoadingSingleImageAsyncTask task = new LoadingSingleImageAsyncTask(imageView, position, imageUrl, imageWidth, imageHeight);
                 if (!cancelAsyncTask(imageView, position)) {
                     hashMap.put(imageView, task);
-                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    try {
+                        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    } catch (RejectedExecutionException e) {
+                        Log.d("Dude", "Itne task nahi ho payenge");
+                    }
                 }
             }
         }
